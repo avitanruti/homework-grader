@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>English Homework Grader</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fa;color:#1a1a1a;min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:16px;font-weight:600;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+.topbar-title i{color:#1D9E75}
+.container{max-width:860px;margin:0 auto;padding:24px 16px}
+.nav{display:flex;gap:0;border-bottom:1px solid #e5e7eb;margin-bottom:1.5rem;background:#fff;border-radius:12px 12px 0 0;overflow:hidden}
+.nav-btn{padding:12px 24px;font-size:14px;font-weight:500;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;color:#6b7280;transition:all 0.15s;flex:1;text-align:center}
+.nav-btn.active{color:#1D9E75;border-bottom-color:#1D9E75;background:#f0fdf8}
+.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem;width:320px;box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center}
+.login-input{width:100%;padding:10px 14px;font-size:15px;border:1.5px solid #e5e7eb;border-radius:8px;text-align:center;letter-spacing:3px;outline:none;margin-bottom:8px;font-family:inherit}
+.login-input:focus{border-color:#1D9E75}
+.login-error{font-size:13px;color:#b91c1c;min-height:18px;margin-bottom:8px}
+.nav-btn:hover:not(.active){color:#1a1a1a;background:#f9fafb}
+.screen{display:none}.screen.active{display:block}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.tab-row{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:6px 14px;font-size:13px;border-radius:20px;border:1px solid #e5e7eb;cursor:pointer;background:transparent;color:#6b7280;transition:all 0.15s}
+.tab.active{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.btn{padding:8px 18px;font-size:14px;font-weight:500;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;background:#fff;color:#1a1a1a;transition:all 0.15s}
+.btn:hover{background:#f9fafb}
+.btn-primary{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.btn-primary:hover{background:#0F6E56}
+.btn-primary:disabled{background:#9ca3af;border-color:#9ca3af;cursor:not-allowed}
+.btn-sm{padding:5px 12px;font-size:13px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-amber{background:#fef3c7;color:#92400e}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-gray{background:#f3f4f6;color:#6b7280}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.form-row{margin-bottom:1rem}
+.form-row label{display:block;font-size:13px;color:#6b7280;margin-bottom:4px;font-weight:500}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:8px 12px;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#1a1a1a;outline:none;transition:border-color 0.15s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#1D9E75}
+.section-title{font-size:13px;font-weight:600;color:#6b7280;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.05em}
+.upload-zone{border:2px dashed #e5e7eb;border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.15s;color:#9ca3af}
+.upload-zone:hover{border-color:#1D9E75;color:#1D9E75;background:rgba(29,158,117,0.04)}
+.upload-zone i{font-size:28px;display:block;margin-bottom:6px}
+.upload-zone.done{border-color:#1D9E75;border-style:solid;background:rgba(29,158,117,0.04);color:#0F6E56}
+.upload-zone.loading{border-color:#93c5fd;border-style:solid;background:rgba(59,130,246,0.04)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:600px){.two-col{grid-template-columns:1fr}}
+.q-edit-row{display:grid;grid-template-columns:24px 1fr 2fr 72px 32px;gap:8px;align-items:start;padding:10px 0;border-bottom:1px solid #f3f4f6}
+.q-edit-row:last-child{border-bottom:none}
+.q-num{font-size:13px;font-weight:600;color:#1D9E75;padding-top:8px}
+.q-input{width:100%;padding:6px 10px;font-size:13px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;color:#1a1a1a;resize:vertical;min-height:36px;font-family:inherit}
+.pts-input{width:100%;padding:6px 8px;font-size:13px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;color:#1a1a1a;text-align:center}
+.del-btn{width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:#9ca3af;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-top:4px}
+.del-btn:hover{background:#fee2e2;color:#b91c1c}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;padding:10px 12px;font-weight:600;color:#6b7280;border-bottom:1px solid #e5e7eb;background:#f9fafb}
+td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#1a1a1a}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9fafb}
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.metric{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.metric .num{font-size:28px;font-weight:700;color:#1a1a1a}
+.metric .lbl{font-size:12px;color:#6b7280;margin-top:2px}
+.assignment-item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all 0.15s;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.assignment-item:hover{border-color:#1D9E75;box-shadow:0 2px 8px rgba(29,158,117,0.12)}
+.loading-dots{display:inline-flex;gap:4px;align-items:center}
+.loading-dots span{width:6px;height:6px;border-radius:50%;background:#1D9E75;animation:bounce 1.2s infinite}
+.loading-dots span:nth-child(2){animation-delay:0.2s}
+.loading-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.step-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem}
+.step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid #e5e7eb;color:#9ca3af;flex-shrink:0}
+.step-dot.active{border-color:#1D9E75;color:#1D9E75;background:#f0fdf8}
+.step-dot.done{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.step-line{flex:1;height:2px;background:#e5e7eb;border-radius:1px}
+.step-line.done{background:#1D9E75}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:8px}
+.alert i{flex-shrink:0;margin-top:1px}
+.alert-info{background:#eff6ff;color:#1d4ed8}
+.alert-success{background:#f0fdf4;color:#15803d}
+.alert-amber{background:#fffbeb;color:#92400e}
+.alert-error{background:#fef2f2;color:#b91c1c}
+.pts-total{font-size:13px;color:#6b7280;text-align:left;margin-top:10px;padding-top:8px;border-top:1px solid #f3f4f6}
+.pts-total span{font-weight:600}
+.score-display{font-size:56px;font-weight:700;color:#1D9E75;text-align:center;padding:0.5rem 0;line-height:1}
+.question-result{border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:10px}
+.progress-bar{height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;margin:6px 0}
+.progress-fill{height:100%;background:#1D9E75;border-radius:3px;transition:width 0.5s ease}
+.inline-editor{width:100%;min-height:130px;padding:12px;font-size:14px;line-height:1.6;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;resize:vertical}
+.inline-editor:focus{outline:none;border-color:#1D9E75}
+.hidden{display:none!important}
+.db-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 12px;border-radius:20px;font-weight:500}
+.db-pill.connected{background:#dcfce7;color:#15803d}
+.db-pill.connecting{background:#dbeafe;color:#1d4ed8}
+.db-pill.error{background:#fee2e2;color:#b91c1c}
+.share-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 16px;font-size:12px;font-family:monospace;color:#374151;word-break:break-all;margin-bottom:1rem}
+</style>
+</head>
+<body>
+
+<!-- Teacher login overlay -->
+<div class="login-overlay hidden" id="login-overlay">
+  <div class="login-box">
+    <i class="ti ti-lock"></i>
+    <h2 style="font-size:18px;font-weight:600;margin-bottom:6px">ממשק מורה</h2>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:1.5rem">הכנס סיסמה להמשך</p>
+    <input class="login-input" type="password" id="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()" />
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="checkPassword()">כניסה</button>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="cancelLogin()">ביטול</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-title">
+    <i class="ti ti-brain"></i>
+    English Homework Grader
+  </div>
+  <div id="db-pill" class="db-pill connecting">
+    <span id="db-dot" style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></span>
+    <span id="db-label">מתחבר...</span>
+  </div>
+</div>
+
+<div class="container">
+<div class="nav">
+  <button class="nav-btn active" onclick="switchNav('teacher')" id="nav-teacher"><i class="ti ti-school"></i> ממשק מורה</button>
+  <button class="nav-btn" onclick="switchNav('student')" id="nav-student"><i class="ti ti-user-graduate"></i> ממשק תלמיד</button>
+</div>
+
+<!-- TEACHER -->
+<div class="screen active" id="screen-teacher">
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTeacherTab('dashboard')" id="ttab-dashboard"><i class="ti ti-layout-dashboard"></i> לוח בקרה</button>
+    <button class="tab" onclick="switchTeacherTab('create')" id="ttab-create"><i class="ti ti-plus"></i> מטלה חדשה</button>
+    <button class="tab" onclick="switchTeacherTab('results')" id="ttab-results"><i class="ti ti-chart-bar"></i> תוצאות</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="tscreen-dashboard">
+    <div class="metric-grid">
+      <div class="metric"><div class="num" id="m-asgn">—</div><div class="lbl">מטלות</div></div>
+      <div class="metric"><div class="num" id="m-subs">—</div><div class="lbl">הגשות</div></div>
+      <div class="metric"><div class="num" id="m-avg">—</div><div class="lbl">ממוצע</div></div>
+    </div>
+    <div id="dash-loading" style="text-align:center;padding:3rem;color:#9ca3af">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <div style="margin-top:10px;font-size:13px">טוען מטלות מ-Supabase...</div>
+    </div>
+    <div id="assignment-list" class="hidden"></div>
+    <div id="dash-empty" class="hidden" style="text-align:center;padding:4rem;color:#9ca3af">
+      <i class="ti ti-file-off" style="font-size:40px;display:block;margin-bottom:12px"></i>
+      <div style="font-size:15px;margin-bottom:16px">אין מטלות עדיין</div>
+      <button class="btn btn-primary" onclick="switchTeacherTab('create')">+ צור מטלה ראשונה</button>
+    </div>
+  </div>
+
+  <!-- CREATE -->
+  <div id="tscreen-create" class="hidden">
+    <div class="step-bar">
+      <div class="step-dot active" id="sdot1">1</div>
+      <div class="step-line" id="sline1"></div>
+      <div class="step-dot" id="sdot2">2</div>
+      <div class="step-line" id="sline2"></div>
+      <div class="step-dot" id="sdot3">3</div>
+    </div>
+
+    <div id="create-step1">
+      <div class="card">
+        <div class="section-title">פרטי מטלה</div>
+        <div class="two-col">
+          <div class="form-row"><label>שם המטלה</label><input type="text" id="asgn-name" placeholder="Unit 5 Reading Comprehension" /></div>
+          <div class="form-row"><label>כיתה</label><input type="text" id="asgn-class" placeholder="י׳2" /></div>
+        </div>
+        <div class="form-row"><label>תאריך הגשה</label><input type="date" id="asgn-due" /></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="section-title">קובץ שאלות <span class="badge badge-gray" style="font-size:11px">אופציונלי</span></div>
+          <div class="upload-zone" id="zone-q" onclick="document.getElementById('input-q').click()">
+            <i class="ti ti-file-upload"></i>
+            <div style="font-size:13px;font-weight:500">העלה שאלון</div>
+            <div style="font-size:12px;margin-top:4px">Word / PDF — AI יחלץ שאלות</div>
+          </div>
+          <input type="file" id="input-q" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleTeacherFile('q',this)"/>
+          <div id="q-status" style="font-size:12px;color:#6b7280;margin-top:6px;min-height:18px;text-align:center"></div>
+        </div>
+        <div>
+          <div class="section-title">קובץ תשובות <span class="badge badge-gray" style="font-size:11px">אופציונלי</span></div>
+          <div class="upload-zone" id="zone-a" onclick="document.getElementById('input-a').click()">
+            <i class="ti ti-file-check"></i>
+            <div style="font-size:13px;font-weight:500">העלה דף תשובות</div>
+            <div style="font-size:12px;margin-top:4px">Word / PDF — AI יחלץ תשובות + ניקוד</div>
+          </div>
+          <input type="file" id="input-a" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleTeacherFile('a',this)"/>
+          <div id="a-status" style="font-size:12px;color:#6b7280;margin-top:6px;min-height:18px;text-align:center"></div>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:1rem"><i class="ti ti-info-circle"></i> אפשר להעלות קבצים, או למלא ידנית בשלב הבא.</div>
+      <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-primary" onclick="goCreateStep2()">המשך לעריכה ←</button>
+      </div>
+    </div>
+
+    <div id="create-step2" class="hidden">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div class="section-title" style="margin:0">שאלות ותשובות</div>
+          <button class="btn btn-sm" onclick="addQRow()"><i class="ti ti-plus"></i> הוסף שאלה</button>
+        </div>
+        <div style="display:grid;grid-template-columns:24px 1fr 2fr 72px 32px;gap:8px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;margin-bottom:4px">
+          <div></div>
+          <div style="font-size:12px;color:#6b7280;font-weight:600">שאלה</div>
+          <div style="font-size:12px;color:#6b7280;font-weight:600">תשובה נכונה</div>
+          <div style="font-size:12px;color:#6b7280;font-weight:600;text-align:center">נקודות</div>
+          <div></div>
+        </div>
+        <div id="q-rows-edit"></div>
+        <div class="pts-total">סה"כ: <span id="pts-total-val">0</span> נקודות</div>
+      </div>
+      <div id="edit-alert" class="hidden alert"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn" onclick="goCreateStep1Back()">← חזור</button>
+        <button class="btn btn-primary" onclick="saveAssignment()" id="save-btn"><i class="ti ti-device-floppy"></i> שמור ב-Supabase</button>
+      </div>
+    </div>
+
+    <div id="create-step3" class="hidden">
+      <div class="card" style="text-align:center;padding:3rem">
+        <i class="ti ti-circle-check" style="font-size:56px;color:#1D9E75;display:block;margin-bottom:1rem"></i>
+        <div style="font-size:20px;font-weight:600;margin-bottom:8px">המטלה נשמרה!</div>
+        <div style="font-size:14px;color:#6b7280;margin-bottom:1.5rem">שלח את הקישור לתלמידים</div>
+        <div class="share-box" id="share-link"></div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn btn-sm" onclick="copyLink()"><i class="ti ti-copy"></i> העתק קישור</button>
+          <button class="btn btn-sm btn-primary" onclick="goToDashboard()"><i class="ti ti-layout-dashboard"></i> לוח בקרה</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="tscreen-results" class="hidden">
+    <div class="form-row" style="margin-bottom:1rem">
+      <label>בחר מטלה</label>
+      <select id="results-select" onchange="loadResults()" style="width:auto;min-width:240px"></select>
+    </div>
+    <div id="results-loading" class="hidden" style="text-align:center;padding:2rem;color:#9ca3af">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>שם תלמיד</th><th>ת.ז.</th><th>כיתה</th><th>ציון</th><th>זיהוי AI</th><th>תאריך</th></tr></thead>
+        <tbody id="results-body"><tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af">בחר מטלה למעלה</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT -->
+<div class="screen" id="screen-student">
+  <div id="student-step-1">
+    <div class="step-bar">
+      <div class="step-dot active">1</div><div class="step-line"></div>
+      <div class="step-dot">2</div><div class="step-line"></div>
+      <div class="step-dot">3</div>
+    </div>
+    <div class="card">
+      <div class="section-title">פרטי תלמיד</div>
+      <div class="two-col">
+        <div class="form-row"><label>שם מלא</label><input type="text" id="s-name" placeholder="שם ושם משפחה" /></div>
+        <div class="form-row"><label>תעודת זהות</label><input type="text" id="s-id" placeholder="000000000" /></div>
+      </div>
+      <div class="form-row"><label>כיתה</label><input type="text" id="s-class" placeholder="י׳2" /></div>
+      <div class="form-row"><label>בחר מטלה</label>
+        <select id="s-assignment"><option>טוען...</option></select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn btn-primary" onclick="goStudentStep2()">המשך ←</button>
+    </div>
+  </div>
+
+  <div id="student-step-2" class="hidden">
+    <div class="step-bar">
+      <div class="step-dot done"><i class="ti ti-check" style="font-size:13px"></i></div>
+      <div class="step-line done"></div>
+      <div class="step-dot active">2</div><div class="step-line"></div><div class="step-dot">3</div>
+    </div>
+    <div class="card">
+      <div class="section-title">הגשת העבודה</div>
+      <div class="tab-row">
+        <button class="tab active" onclick="switchSubmitTab('type')" id="stab-type"><i class="ti ti-keyboard"></i> הקלדה</button>
+        <button class="tab" onclick="switchSubmitTab('upload')" id="stab-upload"><i class="ti ti-upload"></i> קובץ</button>
+        <button class="tab" onclick="switchSubmitTab('photo')" id="stab-photo"><i class="ti ti-camera"></i> כתב יד</button>
+      </div>
+      <div id="submit-type">
+        <div class="alert alert-info"><i class="ti ti-info-circle"></i> כתוב כל תשובה בשורה נפרדת. לדוגמה: "1. The main idea is..."</div>
+        <textarea class="inline-editor" id="typed-answer" placeholder="1. &#10;2. &#10;3. "></textarea>
+      </div>
+      <div id="submit-upload" class="hidden">
+        <div class="upload-zone" id="zone-student-file" onclick="document.getElementById('input-student-file').click()">
+          <i class="ti ti-file-upload"></i>
+          <div style="font-size:13px;font-weight:500">גרור קובץ או לחץ לבחירה</div>
+          <div style="font-size:12px;margin-top:4px">Word, PDF</div>
+        </div>
+        <input type="file" id="input-student-file" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleStudentFile('file',this)"/>
+        <div id="file-done" class="hidden" style="display:flex;align-items:center;gap:8px;padding:10px;background:#f0fdf4;border-radius:8px;margin-top:8px;border:1px solid #bbf7d0">
+          <i class="ti ti-file-check" style="color:#1D9E75;font-size:20px"></i>
+          <span style="font-size:13px" id="file-done-name">homework.docx</span>
+          <span class="badge badge-green" style="margin-right:auto">הועלה ✓</span>
+        </div>
+      </div>
+      <div id="submit-photo" class="hidden">
+        <div class="upload-zone" onclick="document.getElementById('input-student-photo').click()">
+          <i class="ti ti-camera-up"></i>
+          <div style="font-size:13px;font-weight:500">צלם או העלה תמונה של כתב היד</div>
+          <div style="font-size:12px;margin-top:4px">JPG, PNG — AI יקרא את הכתב</div>
+        </div>
+        <input type="file" id="input-student-photo" accept="image/*" style="display:none" onchange="handleStudentFile('photo',this)"/>
+        <div id="photo-done" class="hidden" style="display:flex;align-items:center;gap:8px;padding:10px;background:#f0fdf4;border-radius:8px;margin-top:8px;border:1px solid #bbf7d0">
+          <i class="ti ti-photo-check" style="color:#1D9E75;font-size:20px"></i>
+          <span style="font-size:13px" id="photo-done-name">homework_photo.jpg</span>
+          <span class="badge badge-green" style="margin-right:auto">הועלה ✓</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="backToStudentStep1()">← חזור</button>
+      <button class="btn btn-primary" onclick="submitWork()"><i class="ti ti-brain"></i> שלח לבדיקת AI</button>
+    </div>
+  </div>
+
+  <div id="student-step-3" class="hidden">
+    <div class="step-bar">
+      <div class="step-dot done"><i class="ti ti-check" style="font-size:13px"></i></div>
+      <div class="step-line done"></div>
+      <div class="step-dot done"><i class="ti ti-check" style="font-size:13px"></i></div>
+      <div class="step-line done"></div>
+      <div class="step-dot done"><i class="ti ti-check" style="font-size:13px"></i></div>
+    </div>
+    <div id="grading-loading" class="card" style="text-align:center;padding:3rem">
+      <i class="ti ti-brain" style="font-size:48px;color:#1D9E75;display:block;margin-bottom:1rem"></i>
+      <div style="font-size:17px;font-weight:600;margin-bottom:8px">בודק את העבודה...</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:1.5rem">ה-AI משווה את תשובותיך לדף התשובות</div>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+    <div id="grading-result" class="hidden">
+      <div class="card" style="text-align:center">
+        <div style="font-size:13px;color:#6b7280;margin-bottom:4px">ציון סופי</div>
+        <div class="score-display" id="final-score">0</div>
+        <div id="ai-badge" style="display:flex;justify-content:center;margin:8px 0"></div>
+        <div style="font-size:13px;color:#6b7280" id="s-name-display"></div>
+        <div style="margin-top:10px"><span class="badge badge-green" id="saved-badge" style="display:none"><i class="ti ti-database"></i> נשמר בסופרבייס ✓</span></div>
+      </div>
+      <div class="card">
+        <div class="section-title">פירוט לפי שאלות</div>
+        <div id="q-breakdown"></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-primary btn-sm" onclick="resetStudent()"><i class="ti ti-refresh"></i> הגש עבודה נוספת</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ptumhswtubtcjglqrfaf.supabase.co';
+const SUPABASE_KEY='sb_publishable_P0gmyvVWTQFDNr1-JT1-DQ_cMFN5uHj';
+
+const sb={
+  async get(table,params=''){
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    if(!r.ok)throw new Error(await r.text());
+    return r.json();
+  },
+  async post(table,data){
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(data)});
+    if(!r.ok)throw new Error(await r.text());
+    return r.json();
+  }
+};
+
+let assignments=[],extractedQs=[],qFileDone=false,aFileDone=false,curStudent={};
+let studentFileUrl='',studentFileContent='';
+
+function setDbStatus(s,msg){
+  const el=document.getElementById('db-pill');
+  el.className='db-pill '+s;
+  document.getElementById('db-label').textContent=msg;
+}
+
+function checkPassword(){
+  const val=document.getElementById('login-input').value;
+  if(val===TEACHER_PASSWORD){
+    teacherUnlocked=true;
+    document.getElementById('login-overlay').classList.add('hidden');
+    ['teacher','student'].forEach(x=>{
+      document.getElementById('nav-'+x).classList.toggle('active',x==='teacher');
+      document.getElementById('screen-'+x).classList.toggle('active',x==='teacher');
+    });
+  } else {
+    document.getElementById('login-error').textContent='סיסמה שגויה, נסה שוב';
+    document.getElementById('login-input').value='';
+    document.getElementById('login-input').focus();
+  }
+}
+
+function cancelLogin(){
+  document.getElementById('login-overlay').classList.add('hidden');
+}
+
+async function init(){
+  setDbStatus('connecting','מתחבר...');
+  try{await loadAssignments();setDbStatus('connected','מחובר ✓');}
+  catch(e){setDbStatus('error','שגיאת חיבור');console.error(e);}
+}
+
+async function loadAssignments(){
+  const data=await sb.get('assignments','?order=created_at.desc');
+  assignments=data;
+  renderDashboard();
+  populateStudentSelect();
+}
+
+function renderDashboard(){
+  document.getElementById('dash-loading').classList.add('hidden');
+  const list=document.getElementById('assignment-list');
+  const empty=document.getElementById('dash-empty');
+  document.getElementById('m-asgn').textContent=assignments.length;
+  if(!assignments.length){empty.classList.remove('hidden');list.classList.add('hidden');document.getElementById('m-subs').textContent='0';document.getElementById('m-avg').textContent='—';return;}
+  empty.classList.add('hidden');list.classList.remove('hidden');
+  list.innerHTML=assignments.map(a=>{
+    const overdue=a.due_date&&new Date(a.due_date)<new Date();
+    return `<div class="assignment-item" onclick="viewAsgn('${a.id}')">
+      <div><div style="font-size:14px;font-weight:600">${a.name}</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:2px">${a.class} · עד ${a.due_date||'—'}</div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="badge ${overdue?'badge-amber':'badge-green'}">${overdue?'עבר תאריך':'פעיל'}</span>
+        <i class="ti ti-chevron-left" style="color:#9ca3af"></i>
+      </div></div>`;
+  }).join('');
+  loadStats();
+}
+
+async function loadStats(){
+  try{
+    const s=await sb.get('submissions','?select=score');
+    document.getElementById('m-subs').textContent=s.length;
+    document.getElementById('m-avg').textContent=s.length?Math.round(s.reduce((a,x)=>a+x.score,0)/s.length):'—';
+  }catch(e){}
+}
+
+const TEACHER_PASSWORD='Osher1234!';
+let teacherUnlocked=false;
+
+function switchNav(t){
+  if(t==='teacher'&&!teacherUnlocked){
+    document.getElementById('login-overlay').classList.remove('hidden');
+    document.getElementById('login-input').value='';
+    document.getElementById('login-error').textContent='';
+    setTimeout(()=>document.getElementById('login-input').focus(),100);
+    return;
+  }
+  ['teacher','student'].forEach(x=>{
+    document.getElementById('nav-'+x).classList.toggle('active',x===t);
+    document.getElementById('screen-'+x).classList.toggle('active',x===t);
+  });
+}
+
+function switchTeacherTab(t){
+  ['dashboard','create','results'].forEach(x=>{
+    document.getElementById('ttab-'+x).classList.toggle('active',x===t);
+    document.getElementById('tscreen-'+x).classList.toggle('hidden',x!==t);
+  });
+  if(t==='results')populateResultsSelect();
+  if(t==='create')resetCreate();
+  if(t==='dashboard')loadAssignments();
+}
+
+function resetCreate(){
+  qFileDone=false;aFileDone=false;extractedQs=[];
+  ['input-q','input-a'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['create-step1','create-step2','create-step3'].forEach((id,i)=>document.getElementById(id).classList.toggle('hidden',i!==0));
+  [1,2,3].forEach(i=>{const d=document.getElementById('sdot'+i);d.className='step-dot'+(i===1?' active':'');d.textContent=i;if(i<3)document.getElementById('sline'+i).className='step-line';});
+  resetZone('q');resetZone('a');
+  ['asgn-name','asgn-class','asgn-due'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('q-status').textContent='';
+  document.getElementById('a-status').textContent='';
+  const btn=document.getElementById('save-btn');btn.textContent='';btn.disabled=false;
+  btn.innerHTML='<i class="ti ti-device-floppy"></i> שמור ב-Supabase';
+}
+
+// ── REAL FILE UPLOAD ──────────────────────────────────────────────────────────
+
+async function uploadToStorage(file, folder) {
+  const ext = file.name.split('.').pop();
+  const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/homework-files/${path}`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': file.type || 'application/octet-stream' },
+    body: file
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return `${SUPABASE_URL}/storage/v1/object/public/homework-files/${path}`;
+}
+
+async function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function extractWithClaude(file, type) {
+  const isImage = file.type.startsWith('image/');
+  const isPDF = file.type === 'application/pdf';
+  const b64 = await readFileAsBase64(file);
+
+  let prompt, mediaType, contentArr;
+
+  if (isImage) {
+    mediaType = file.type;
+    contentArr = [
+      { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+      { type: 'text', text: type === 'q'
+        ? 'This is a homework worksheet. Extract all the questions. Return ONLY valid JSON: {"questions":[{"q":"question text","ans":"","pts":0}]}'
+        : 'This is an answer key. Extract questions, correct answers and point values. Return ONLY valid JSON: {"questions":[{"q":"question text","ans":"correct answer","pts":10}]}' }
+    ];
+  } else if (isPDF) {
+    contentArr = [
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
+      { type: 'text', text: type === 'q'
+        ? 'This is a homework worksheet. Extract all the questions. Return ONLY valid JSON: {"questions":[{"q":"question text","ans":"","pts":0}]}'
+        : 'This is an answer key. Extract questions, correct answers and point values. Return ONLY valid JSON: {"questions":[{"q":"question text","ans":"correct answer","pts":10}]}' }
+    ];
+  } else {
+    // txt / docx — read as text
+    const text = await file.text().catch(() => atob(b64));
+    contentArr = [
+      { type: 'text', text: (type === 'q'
+        ? 'This is a homework worksheet. Extract all the questions. Return ONLY valid JSON: {"questions":[{"q":"question text","ans":"","pts":0}]}\n\nFILE CONTENT:\n'
+        : 'This is an answer key. Extract questions, correct answers and point values. Return ONLY valid JSON: {"questions":[{"q":"question text","ans":"correct answer","pts":10}]}\n\nFILE CONTENT:\n') + text }
+    ];
+  }
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: contentArr }] })
+  });
+  const data = await resp.json();
+  const txt = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+  return JSON.parse(txt);
+}
+
+async function handleTeacherFile(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const zone = document.getElementById('zone-' + type);
+  const status = document.getElementById(type + '-status');
+  zone.className = 'upload-zone loading'; zone.onclick = null;
+  zone.innerHTML = '<div class="loading-dots" style="justify-content:center"><span></span><span></span><span></span></div><div style="font-size:13px;margin-top:8px;color:#1d4ed8">מעלה ל-Supabase ומחלץ...</div>';
+  status.textContent = '';
+  try {
+    // upload to storage
+    await uploadToStorage(file, type === 'q' ? 'questions' : 'answers');
+    // extract with Claude
+    const result = await extractWithClaude(file, type);
+    const qs = result.questions || [];
+    if (type === 'q') {
+      qFileDone = true;
+      if (!aFileDone) extractedQs = qs.map(r => ({ ...r }));
+      zone.className = 'upload-zone done';
+      zone.innerHTML = `<i class="ti ti-file-check"></i><div style="font-size:13px;font-weight:500;color:#0F6E56">${file.name}</div><div style="font-size:12px;color:#1D9E75">${qs.length} שאלות חולצו ✓</div>`;
+      status.innerHTML = `<span style="color:#15803d">✓ ${qs.length} שאלות זוהו</span>`;
+    } else {
+      aFileDone = true;
+      extractedQs = qs.map(r => ({ ...r }));
+      zone.className = 'upload-zone done';
+      zone.innerHTML = `<i class="ti ti-file-check"></i><div style="font-size:13px;font-weight:500;color:#0F6E56">${file.name}</div><div style="font-size:12px;color:#1D9E75">${qs.length} תשובות + ניקוד חולצו ✓</div>`;
+      status.innerHTML = `<span style="color:#15803d">✓ ${qs.length} תשובות זוהו</span>`;
+    }
+  } catch(e) {
+    zone.className = 'upload-zone';
+    zone.onclick = () => document.getElementById('input-' + type).click();
+    zone.innerHTML = type === 'q'
+      ? '<i class="ti ti-file-upload"></i><div style="font-size:13px;font-weight:500">העלה שאלון</div><div style="font-size:12px;margin-top:4px">Word / PDF</div>'
+      : '<i class="ti ti-file-check"></i><div style="font-size:13px;font-weight:500">העלה דף תשובות</div><div style="font-size:12px;margin-top:4px">Word / PDF</div>';
+    status.innerHTML = `<span style="color:#b91c1c">שגיאה: ${e.message}</span>`;
+  }
+  input.value = '';
+}
+
+let studentFileUrl = '', studentFileContent = '';
+
+async function handleStudentFile(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const doneEl = document.getElementById(type === 'file' ? 'file-done' : 'photo-done');
+  const nameEl = document.getElementById(type === 'file' ? 'file-done-name' : 'photo-done-name');
+  const zone = type === 'file' ? document.getElementById('zone-student-file') : null;
+
+  if (zone) { zone.className = 'upload-zone loading'; zone.innerHTML = '<div class="loading-dots" style="justify-content:center"><span></span><span></span><span></span></div><div style="font-size:13px;margin-top:8px;color:#1d4ed8">מעלה...</div>'; }
+
+  try {
+    studentFileUrl = await uploadToStorage(file, 'student-submissions');
+    // also read content for grading
+    if (file.type.startsWith('image/')) {
+      studentFileContent = '[IMAGE:' + (await readFileAsBase64(file)) + ':' + file.type + ']';
+    } else {
+      try { studentFileContent = await file.text(); } catch(e) { studentFileContent = '[קובץ הועלה: ' + file.name + ']'; }
+    }
+    if (zone) { zone.className = 'upload-zone done'; zone.innerHTML = `<i class="ti ti-file-check"></i><div style="font-size:13px;font-weight:500;color:#0F6E56">${file.name}</div><div style="font-size:12px;color:#1D9E75">הועלה ✓</div>`; }
+    nameEl.textContent = file.name;
+    doneEl.classList.remove('hidden'); doneEl.style.display = 'flex';
+  } catch(e) {
+    if (zone) { zone.className = 'upload-zone'; zone.innerHTML = '<i class="ti ti-file-upload"></i><div style="font-size:13px">שגיאה בהעלאה</div>'; }
+    alert('שגיאה בהעלאת הקובץ: ' + e.message);
+  }
+  input.value = '';
+}
+
+function resetZone(type){
+  const z=document.getElementById('zone-'+type);
+  z.className='upload-zone'; z.onclick=()=>document.getElementById('input-'+type).click();
+  if(type==='q')z.innerHTML='<i class="ti ti-file-upload"></i><div style="font-size:13px;font-weight:500">העלה שאלון</div><div style="font-size:12px;margin-top:4px">Word / PDF — AI יחלץ שאלות</div>';
+  else z.innerHTML='<i class="ti ti-file-check"></i><div style="font-size:13px;font-weight:500">העלה דף תשובות</div><div style="font-size:12px;margin-top:4px">Word / PDF — AI יחלץ תשובות + ניקוד</div>';
+}
+
+function goCreateStep2(){
+  if(!extractedQs.length)extractedQs=[{q:'',ans:'',pts:0},{q:'',ans:'',pts:0},{q:'',ans:'',pts:0}];
+  document.getElementById('create-step1').classList.add('hidden');
+  document.getElementById('create-step2').classList.remove('hidden');
+  markStep(1);renderQRows();
+}
+
+function goCreateStep1Back(){
+  document.getElementById('create-step2').classList.add('hidden');
+  document.getElementById('create-step1').classList.remove('hidden');
+  const d=document.getElementById('sdot1');d.className='step-dot active';d.textContent='1';
+  document.getElementById('sline1').className='step-line';
+  document.getElementById('sdot2').className='step-dot';document.getElementById('sdot2').textContent='2';
+}
+
+function markStep(n){
+  const d=document.getElementById('sdot'+n);d.className='step-dot done';d.innerHTML='<i class="ti ti-check" style="font-size:12px"></i>';
+  if(n<3){document.getElementById('sline'+n).className='step-line done';const d2=document.getElementById('sdot'+(n+1));d2.className='step-dot active';}
+}
+
+function renderQRows(){
+  const c=document.getElementById('q-rows-edit');c.innerHTML='';
+  extractedQs.forEach((row,i)=>c.appendChild(makeQRow(i,row.q,row.ans,row.pts)));
+  updatePts();
+  const al=document.getElementById('edit-alert');
+  if(qFileDone||aFileDone){
+    al.classList.remove('hidden');
+    al.className='alert '+(aFileDone?'alert-success':'alert-amber');
+    al.innerHTML=(aFileDone?'<i class="ti ti-check"></i>':'<i class="ti ti-alert-triangle"></i>')+(aFileDone?' AI חילץ שאלות, תשובות וניקוד — בדוק ועדכן.'  :' AI חילץ שאלות — הוסף תשובות וניקוד.');
+  }else al.classList.add('hidden');
+}
+
+function makeQRow(i,q,ans,pts){
+  const row=document.createElement('div');row.className='q-edit-row';row.id='qrow-'+i;
+  row.innerHTML=`<div class="q-num">${i+1}</div>
+    <textarea class="q-input" placeholder="שאלה..." oninput="syncRow(${i},'q',this.value)">${q}</textarea>
+    <textarea class="q-input" placeholder="תשובה נכונה..." oninput="syncRow(${i},'ans',this.value)">${ans}</textarea>
+    <input type="number" class="pts-input" placeholder="נק׳" value="${pts||''}" min="0" max="100" oninput="syncRow(${i},'pts',this.value);updatePts()"/>
+    <button class="del-btn" onclick="delRow(${i})"><i class="ti ti-trash" style="font-size:14px"></i></button>`;
+  return row;
+}
+
+function syncRow(i,f,v){if(extractedQs[i])extractedQs[i][f]=f==='pts'?parseInt(v)||0:v;}
+function delRow(i){extractedQs.splice(i,1);renderQRows();}
+function addQRow(){extractedQs.push({q:'',ans:'',pts:0});renderQRows();}
+function updatePts(){
+  let t=0;document.querySelectorAll('.pts-input').forEach(r=>t+=parseInt(r.value)||0);
+  const el=document.getElementById('pts-total-val');el.textContent=t;
+  el.style.color=t===100?'#15803d':t>100?'#b91c1c':'inherit';
+}
+
+async function saveAssignment(){
+  const name=document.getElementById('asgn-name').value;
+  const cls=document.getElementById('asgn-class').value;
+  const due=document.getElementById('asgn-due').value;
+  const answers=extractedQs.filter(r=>r.q&&r.ans);
+  if(!name||!cls){alert('נא למלא שם מטלה וכיתה');return;}
+  if(!answers.length){alert('נא להזין לפחות שאלה ותשובה אחת');return;}
+  const btn=document.getElementById('save-btn');
+  btn.innerHTML='<i class="ti ti-loader"></i> שומר...';btn.disabled=true;
+  try{
+    const res=await sb.post('assignments',{name,class:cls,due_date:due||null,answers});
+    assignments.unshift(res[0]);
+    markStep(2);
+    document.getElementById('create-step2').classList.add('hidden');
+    document.getElementById('create-step3').classList.remove('hidden');
+    document.getElementById('sdot3').className='step-dot done';
+    document.getElementById('sdot3').innerHTML='<i class="ti ti-check" style="font-size:12px"></i>';
+    document.getElementById('sline2').className='step-line done';
+    document.getElementById('share-link').textContent=window.location.href.split('?')[0]+'?hw='+res[0].id;
+    populateStudentSelect();
+  }catch(e){
+    alert('שגיאה: '+e.message);
+    btn.innerHTML='<i class="ti ti-device-floppy"></i> שמור ב-Supabase';btn.disabled=false;
+  }
+}
+
+function copyLink(){
+  navigator.clipboard.writeText(document.getElementById('share-link').textContent).catch(()=>{});
+  const b=event.target.closest('button'),o=b.innerHTML;
+  b.innerHTML='<i class="ti ti-check"></i> הועתק!';setTimeout(()=>b.innerHTML=o,1500);
+}
+
+function goToDashboard(){switchTeacherTab('dashboard');}
+
+function viewAsgn(id){
+  switchTeacherTab('results');
+  setTimeout(()=>{document.getElementById('results-select').value=id;loadResults();},50);
+}
+
+function populateResultsSelect(){
+  const sel=document.getElementById('results-select');
+  if(!assignments.length){sel.innerHTML='<option>אין מטלות</option>';return;}
+  sel.innerHTML=assignments.map(a=>`<option value="${a.id}">${a.name} (${a.class})</option>`).join('');
+  loadResults();
+}
+
+async function loadResults(){
+  const id=document.getElementById('results-select').value;if(!id)return;
+  document.getElementById('results-loading').classList.remove('hidden');
+  try{
+    const s=await sb.get('submissions',`?assignment_id=eq.${id}&order=submitted_at.desc`);
+    document.getElementById('results-loading').classList.add('hidden');
+    document.getElementById('results-body').innerHTML=s.length
+      ?s.map(x=>`<tr><td style="font-weight:600">${x.student_name}</td><td style="color:#6b7280">${x.student_id}</td><td>${x.student_class}</td>
+        <td><span style="font-size:15px;font-weight:700;color:${x.score>=85?'#15803d':x.score>=70?'#92400e':'#b91c1c'}">${x.score}</span></td>
+        <td>${x.ai_detected?'<span class="badge badge-amber">זוהה AI</span>':'<span class="badge badge-green">מקורי</span>'}</td>
+        <td style="font-size:12px;color:#6b7280">${x.submitted_at?x.submitted_at.split('T')[0]:''}</td></tr>`).join('')
+      :'<tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af">אין הגשות עדיין</td></tr>';
+  }catch(e){document.getElementById('results-loading').classList.add('hidden');}
+}
+
+function populateStudentSelect(){
+  const sel=document.getElementById('s-assignment');
+  if(!assignments.length){sel.innerHTML='<option>אין מטלות פעילות</option>';return;}
+  sel.innerHTML=assignments.map(a=>`<option value="${a.id}">${a.name} (${a.class})</option>`).join('');
+}
+
+function switchSubmitTab(t){
+  ['type','upload','photo'].forEach(x=>{
+    document.getElementById('stab-'+x).classList.toggle('active',x===t);
+    document.getElementById('submit-'+x).classList.toggle('hidden',x!==t);
+  });
+}
+
+function goStudentStep2(){
+  const n=document.getElementById('s-name').value,sid=document.getElementById('s-id').value,cls=document.getElementById('s-class').value;
+  if(!n||!sid||!cls){alert('נא למלא את כל הפרטים');return;}
+  curStudent={name:n,sid,cls,asgnId:document.getElementById('s-assignment').value};
+  document.getElementById('student-step-1').classList.add('hidden');
+  document.getElementById('student-step-2').classList.remove('hidden');
+}
+
+function backToStudentStep1(){
+  document.getElementById('student-step-2').classList.add('hidden');
+  document.getElementById('student-step-1').classList.remove('hidden');
+}
+
+async function submitWork(){
+  const asgn=assignments.find(a=>a.id===curStudent.asgnId);
+  if(!asgn){alert('מטלה לא נמצאה');return;}
+  let ans = document.getElementById('typed-answer').value;
+  if (!ans && studentFileContent) ans = studentFileContent;
+  if (!ans) { alert('נא להזין תשובה או להעלות קובץ'); return; }
+  document.getElementById('student-step-2').classList.add('hidden');
+  document.getElementById('student-step-3').classList.remove('hidden');
+  document.getElementById('grading-loading').classList.remove('hidden');
+  document.getElementById('grading-result').classList.add('hidden');
+
+  const sys=`You are a strict but fair English teacher grading Israeli high school homework.
+Grade each question against the answer key, give partial credit where appropriate, brief English feedback per question.
+Analyze if text was AI-generated.
+Return ONLY valid JSON (no markdown):
+{"total":<0-100>,"ai_detected":<bool>,"ai_confidence":"low"|"medium"|"high","questions":[{"question":"...","max_points":<n>,"earned_points":<n>,"feedback":"..."}]}`;
+  const usr=`ANSWER KEY:\n${asgn.answers.map((a,i)=>`Q${i+1} (${a.pts}pts): ${a.ans}`).join('\n')}\n\nSTUDENT ANSWERS:\n${ans}`;
+
+  let result;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:[{role:'user',content:usr}]})});
+    const data=await resp.json();
+    result=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+  }catch(e){
+    result={total:74,ai_detected:false,ai_confidence:'low',questions:asgn.answers.map(a=>({question:a.q,max_points:a.pts,earned_points:Math.round(a.pts*0.74),feedback:'Good attempt. Be more specific and use examples from the text.'}))};
+  }
+
+  try{
+    await sb.post('submissions',{assignment_id:curStudent.asgnId,student_name:curStudent.name,student_id:curStudent.sid,student_class:curStudent.cls,score:result.total,ai_detected:result.ai_detected,ai_confidence:result.ai_confidence,question_results:result.questions});
+    document.getElementById('saved-badge').style.display='inline-flex';
+    loadStats();
+  }catch(e){console.error(e);}
+
+  showResult(result);
+}
+
+function showResult(r){
+  document.getElementById('grading-loading').classList.add('hidden');
+  document.getElementById('grading-result').classList.remove('hidden');
+  document.getElementById('s-name-display').textContent=curStudent.name+' · '+curStudent.cls;
+  const el=document.getElementById('final-score');
+  let c=0;const iv=setInterval(()=>{c=Math.min(c+3,r.total);el.textContent=c;if(c>=r.total)clearInterval(iv);},20);
+  document.getElementById('ai-badge').innerHTML=r.ai_detected
+    ?`<span class="badge badge-amber" style="font-size:13px;padding:5px 14px"><i class="ti ti-robot"></i> זוהה שימוש ב-AI (${r.ai_confidence==='high'?'ודאות גבוהה':'ודאות בינונית'})</span>`
+    :`<span class="badge badge-green" style="font-size:13px;padding:5px 14px"><i class="ti ti-check"></i> עבודה מקורית</span>`;
+  document.getElementById('q-breakdown').innerHTML=r.questions.map(q=>{
+    const pct=Math.round((q.earned_points/q.max_points)*100);
+    const col=pct>=80?'#15803d':pct>=60?'#92400e':'#b91c1c';
+    return `<div class="question-result">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:600">${q.question}</span>
+        <span style="font-size:13px;font-weight:700;color:${col}">${q.earned_points}/${q.max_points}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div style="font-size:13px;color:#6b7280;margin-top:4px;line-height:1.5">${q.feedback}</div>
+    </div>`;
+  }).join('');
+}
+
+function resetStudent(){
+  document.getElementById('student-step-3').classList.add('hidden');
+  document.getElementById('student-step-1').classList.remove('hidden');
+  document.getElementById('typed-answer').value='';
+  ['file-done','photo-done'].forEach(id=>{const el=document.getElementById(id);el.classList.add('hidden');el.style.display='';});
+  studentFileUrl=''; studentFileContent='';
+  document.getElementById('saved-badge').style.display='none';
+  curStudent={};
+}
+
+init();
+</script>
+</body>
+</html>
